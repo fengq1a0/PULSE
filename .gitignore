@@ -1,5 +1,7 @@
-
+FQ*
+.vscode
 *.json
+_*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -129,7 +131,7 @@ venv.bak/
  # Pyre type checker
 .pyre/
 checkpoints/
-data/*
+data
 output/
 log/
 
