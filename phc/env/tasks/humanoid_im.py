@@ -486,7 +486,10 @@ class HumanoidIm(humanoid_amp_task.HumanoidAMPTask):
             elif self.obs_v == 9:  # local+ dof + pos (not diff) + vel (no diff). 
                 obs_size = len(self._track_bodies) * self._num_traj_samples * 24
                 obs_size -= (len(self._track_bodies) - 1) * self._num_traj_samples * 6
-
+            elif self.obs_v == 66:
+                obs_size = 1024 + 16 + 3 + len(self._track_bodies) * self._num_traj_samples * 24
+            else:
+                raise NotImplementedError("No such observation")
 
         return obs_size
 
@@ -758,7 +761,7 @@ class HumanoidIm(humanoid_amp_task.HumanoidAMPTask):
             obs = compute_imitation_observations_v2(root_pos, root_rot, body_pos_subset, body_rot_subset, body_vel_subset, body_ang_vel_subset, dof_pos_subset, ref_rb_pos_subset, ref_rb_rot_subset, ref_body_vel_subset, ref_body_ang_vel_subset, ref_dof_pos_subset, time_steps, self._has_upright_start)
         elif self.obs_v == 3:
             obs = compute_imitation_observations_v3(root_pos, root_rot, body_pos_subset, body_rot_subset, body_vel_subset, body_ang_vel_subset, ref_rb_pos_subset, ref_rb_rot_subset, ref_body_vel_subset, ref_body_ang_vel_subset, time_steps, self._has_upright_start)
-        elif self.obs_v == 4 or self.obs_v == 5 or self.obs_v == 6 or self.obs_v == 8 or self.obs_v == 9:
+        elif self.obs_v == 4 or self.obs_v == 5 or self.obs_v == 6 or self.obs_v == 8 or self.obs_v == 9 or self.obs_v == 66:
 
             if self.zero_out_far:
                 close_distance = self.close_distance
@@ -800,7 +803,13 @@ class HumanoidIm(humanoid_amp_task.HumanoidAMPTask):
                 ref_root_vel_subset = ref_body_vel_subset[:, 0]
                 ref_root_ang_vel_subset =ref_body_ang_vel_subset[:, 0]
                 obs = compute_imitation_observations_v9(root_pos, root_rot, body_pos_subset, body_rot_subset, body_vel_subset, body_ang_vel_subset, ref_rb_pos_subset, ref_rb_rot_subset, ref_root_vel_subset, ref_root_ang_vel_subset, time_steps, self._has_upright_start)
-            
+            elif self.obs_v == 66:
+                obs1 = compute_imitation_observations_v6(root_pos, root_rot, body_pos_subset, body_rot_subset, body_vel_subset, body_ang_vel_subset, ref_rb_pos_subset, ref_rb_rot_subset, ref_body_vel_subset, ref_body_ang_vel_subset, time_steps, self._has_upright_start)
+                obs2 = motion_res["FQ_feat"]
+                obs = torch.cat((obs1, obs2), dim=1)
+            else:
+                raise NotImplementedError("No such observerion")
+
             if self._fut_tracks_dropout and not flags.test:
                 dropout_rate = 0.1
                 curr_num_envs = env_ids.shape[0]

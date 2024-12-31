@@ -129,7 +129,8 @@ class MotionLibSMPL(MotionLibBase):
             B, J, N = pose_quat_global.shape
 
             ##### ZL: randomize the heading ######
-            if (not flags.im_eval) and (not flags.test):
+            # Don't randomize heading
+            if (not flags.im_eval) and (not flags.test) and False:
                 # if True:
                 random_rot = np.zeros(3)
                 random_rot[2] = np.pi * (2 * np.random.random() - 1.0)
@@ -164,7 +165,17 @@ class MotionLibSMPL(MotionLibBase):
 
             curr_motion.dof_vels = curr_dof_vels
             curr_motion.gender_beta = curr_gender_beta
-            res[curr_id] = (curr_file, curr_motion)
+            ##########FQ_info: step 0 ##############
+            FQ_feat = []
+            for kk in ["img_feat", "bbox", "T_c2g"]:# "kp2d",
+                # img_feat: 1024
+                # bbox:     3
+                # kp2d:     23 3
+                # T_c2g:        16
+                FQ_feat.append(curr_file[kk])
+            FQ_feat = torch.from_numpy(np.concatenate(FQ_feat, axis=1)).float()
+            ###############################
+            res[curr_id] = (curr_file, curr_motion, FQ_feat)
             
             
 

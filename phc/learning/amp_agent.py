@@ -365,7 +365,6 @@ class AMPAgent(common_agent.CommonAgent):
                 self.experience_buffer.update_data('states', n, self.obs['states'])
             
             if self.only_kin_loss and self.save_kin_info:
-                # pure behavior cloning, kinemaitc loss. 
                 self.obs, rewards, self.dones, infos = self.env_step(res_dict['mus'])
             else:
                 self.obs, rewards, self.dones, infos = self.env_step(res_dict['actions'])

@@ -134,14 +134,7 @@ class HumanoidAMP(humanoid_z.HumanoidZ):
         # ZL Hack
         self._add_amp_input_noise = cfg["env"].get("add_amp_input_noise", False)
         return
-    
-    ## Disabled.
-    # def get_self_obs_size(self):
-    #     if self.obs_v == 2:
-    #         return self._num_self_obs * self.past_track_steps
-    #     else:
-    #         return self._num_self_obs
-        
+      
     def _compute_observations(self, env_ids=None):
         if env_ids is None:
             env_ids = torch.arange(self.num_envs).to(self.device)

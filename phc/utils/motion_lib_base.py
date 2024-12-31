@@ -185,6 +185,7 @@ class MotionLibBase():
                 del self.q_gts, self.q_grs, self.q_gavs, self.q_gvs
 
         motions = []
+        FQ_feat = []
         self._motion_lengths = []
         self._motion_fps = []
         self._motion_dt = []
@@ -252,7 +253,7 @@ class MotionLibBase():
             res_acc.update(res)
 
         for f in tqdm(range(len(res_acc))):
-            motion_file_data, curr_motion = res_acc[f]
+            motion_file_data, curr_motion, tmp_FQ_feat = res_acc[f]
             if USE_CACHE:
                 curr_motion = DeviceCache(curr_motion, self._device)
 
@@ -275,6 +276,8 @@ class MotionLibBase():
             self._motion_num_frames.append(num_frames)
             motions.append(curr_motion)
             self._motion_lengths.append(curr_len)
+
+            FQ_feat.append(tmp_FQ_feat)
             
             if flags.real_traj:
                 self.q_gts.append(curr_motion.quest_motion['quest_trans'])
@@ -283,6 +286,7 @@ class MotionLibBase():
                 self.q_gvs.append(curr_motion.quest_motion['linear_vel'])
                 
             del curr_motion
+            del tmp_FQ_feat
             
         self._motion_lengths = torch.tensor(self._motion_lengths, device=self._device, dtype=torch.float32)
         self._motion_fps = torch.tensor(self._motion_fps, device=self._device, dtype=torch.float32)
@@ -302,6 +306,8 @@ class MotionLibBase():
         self.gavs = torch.cat([m.global_angular_velocity for m in motions], dim=0).float().to(self._device)
         self.gvs = torch.cat([m.global_velocity for m in motions], dim=0).float().to(self._device)
         self.dvs = torch.cat([m.dof_vels for m in motions], dim=0).float().to(self._device)
+
+        self.FQ_feat_device = torch.cat(FQ_feat, dim=0).to(self._device)
         
         if flags.real_traj:
             self.q_gts = torch.cat(self.q_gts, dim=0).float().to(self._device)
@@ -320,7 +326,7 @@ class MotionLibBase():
         num_motions = self.num_motions()
         total_len = self.get_total_length()
         print(f"Loaded {num_motions:d} motions with a total length of {total_len:.3f}s and {self.gts.shape[0]} frames.")
-        return motions
+        return motions, FQ_feat
 
     def num_motions(self):
         return self._num_motions
@@ -514,6 +520,7 @@ class MotionLibBase():
             "body_ang_vel": body_ang_vel,
             "motion_bodies": self._motion_bodies[motion_ids],
             "motion_limb_weights": self._motion_limb_weights[motion_ids],
+            "FQ_feat" : self.FQ_feat_device[f0l]
         }
 
     def get_root_pos_smpl(self, motion_ids, motion_times):

@@ -188,7 +188,6 @@ class RLGPUAlgoObserver(AlgoObserver):
 
 
 class RLGPUEnv(vecenv.IVecEnv):
-
     def __init__(self, config_name, num_actors, **kwargs):
         self.env = env_configurations.configurations[config_name]['env_creator'](**kwargs)
         self.use_global_obs = (self.env.num_states > 0)

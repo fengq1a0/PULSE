@@ -166,12 +166,17 @@ class HumanoidImDistill(humanoid_im.HumanoidIm):
                     self_obs_size = self_obs.shape[-1]
                     self_obs = ((self_obs - self.running_mean.float()[:self_obs_size]) / torch.sqrt(self.running_var.float()[:self_obs_size] + 1e-05))
                 else:
+                    # FQ: go here
                     self_obs_size = self.get_self_obs_size()
                     self_obs = ((self.obs_buf[:, :self_obs_size] - self.running_mean.float()[:self_obs_size]) / torch.sqrt(self.running_var.float()[:self_obs_size] + 1e-05))
                     
                 if temp_fut == self.fut_tracks_distill and temp_fut_drop == self.fut_tracks_dropout_distill and temp_timestep == 1/self.traj_sample_timestep_distill and temp_num_steps == self.num_traj_samples_distill\
                     and temp_root_height_obs == self.root_height_obs_distill:
-                    task_obs = self.obs_buf[:, self.get_self_obs_size():]
+                    # FQ: go here
+                    FQ_size = 1024 + 16 + 3
+                    OR_size = len(self._track_bodies) * self._num_traj_samples * 24
+                    task_obs = self.obs_buf[:, self.get_self_obs_size() : self.get_self_obs_size()+OR_size]
+                    FQFQ_obs = task_obs[self.get_self_obs_size()+OR_size : ]
                 else:
                     task_obs = self._compute_task_obs(save_buffer = False)
                     
@@ -179,7 +184,8 @@ class HumanoidImDistill(humanoid_im.HumanoidIm):
                 self._fut_tracks, self._fut_tracks_dropout, self._traj_sample_timestep, self._num_traj_samples, self._root_height_obs = temp_fut, temp_fut_drop, temp_timestep, temp_num_steps, temp_root_height_obs
 
                 
-                task_obs = ((task_obs - self.running_mean.float()[self_obs_size:]) / torch.sqrt(self.running_var.float()[self_obs_size:] + 1e-05))
+                task_obs = ((task_obs - self.running_mean.float()[self.get_self_obs_size() : self.get_self_obs_size()+OR_size]) / torch.sqrt(self.running_var.float()[self.get_self_obs_size() : self.get_self_obs_size()+OR_size] + 1e-05))
+                # TODO: FQ Normalize task_obs
                 full_obs = torch.cat([self_obs, task_obs], dim = -1)
                 full_obs = torch.clamp(full_obs, min=-5.0, max=5.0)
                 
@@ -192,6 +198,8 @@ class HumanoidImDistill(humanoid_im.HumanoidIm):
                         gt_action = self.decoder.decoder(torch.cat([self_obs, gt_z], dim = -1))
                 else:
                     if self.has_pnn_distill:
+                        # TODO: the input of pnn is not right!
+                        # this is how we get the gt_action from the pnn
                         _, pnn_actions = self.pnn(full_obs)
                         x_all = torch.stack(pnn_actions, dim=1)
                         weights = self.composer(full_obs)

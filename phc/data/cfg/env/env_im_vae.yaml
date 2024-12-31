@@ -13,7 +13,7 @@ enable_debug_vis: False
 
 fut_tracks: False
 fut_tracks_dropout: False
-obs_v: 6
+obs_v: 66
 auto_pmcp: False
 auto_pmcp_soft: True
 eval_full: False

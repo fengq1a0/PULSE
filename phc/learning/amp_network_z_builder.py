@@ -249,7 +249,7 @@ class AMPZBuilder(AMPBuilder):
 
         def eval_z(self, obs_dict):
             obs = obs_dict['obs']
-
+            obs[:,self.self_obs_size:-1043]
             a_out = self.actor_cnn(obs)  # This is empty
             a_out = a_out.contiguous().view(a_out.size(0), -1)
 
@@ -265,6 +265,7 @@ class AMPZBuilder(AMPBuilder):
         def eval_critic(self, obs_dict):
 
             obs = obs_dict['obs']
+            obs[:,self.self_obs_size:-1043]
             c_out = self.critic_cnn(obs)
             c_out = c_out.contiguous().view(c_out.size(0), -1)
             seq_length = obs_dict.get('seq_length', 1)
@@ -340,6 +341,9 @@ class AMPZBuilder(AMPBuilder):
             
         def eval_actor(self, obs_dict, return_extra = False):
             obs = obs_dict['obs']
+
+            obs[:,self.self_obs_size:-1043]
+
             states = obs_dict.get('rnn_states', None)
             seq_length = obs_dict.get('seq_length', 1)
 
