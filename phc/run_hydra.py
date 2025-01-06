@@ -31,8 +31,6 @@ import os
 import sys
 import pdb
 import os.path as osp
-os.environ["OMP_NUM_THREADS"] = "1"
-
 sys.path.append(os.getcwd())
 
 from phc.utils.config import set_np_formatting, set_seed, SIM_TIMESTEP
@@ -53,6 +51,9 @@ import numpy as np
 import copy
 import torch
 import wandb
+
+
+from learning import FQ_im_amp_agent
 
 from learning import im_amp
 from learning import im_amp_players
@@ -261,7 +262,7 @@ def build_alg_runner(algo_observer):
     runner.model_builder.network_factory.register_builder('amp_z', lambda **kwargs: amp_network_z_builder.AMPZBuilder())
     runner.model_builder.network_factory.register_builder('amp_z_reader', lambda **kwargs: amp_network_z_reader_builder.AMPZReaderBuilder())
     
-    runner.algo_factory.register_builder('im_amp', lambda **kwargs: im_amp.IMAmpAgent(**kwargs))
+    runner.algo_factory.register_builder('im_amp', lambda **kwargs: FQ_im_amp_agent.IMAmpAgent(**kwargs))
     runner.player_factory.register_builder('im_amp', lambda **kwargs: im_amp_players.IMAMPPlayerContinuous(**kwargs))
     
     return runner
